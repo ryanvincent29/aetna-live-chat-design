@@ -1,0 +1,225 @@
+openapi: 3.0.3
+info:
+  title: Simple Chat API
+  description: A simple chat API for managing chat sessions and messages
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+    description: Production server
+paths:
+  /chat:
+    post:
+      summary: Start a new chat
+      operationId: startChat
+      parameters:
+        - name: chat_api_key
+          in: header
+          required: true
+          schema:
+            type: string
+          example: "your-api-key-here"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerId:
+                  type: string
+                  example: "user123"
+                topic:
+                  type: string
+                  example: "Customer Support"
+                content:
+                  type: string
+                  example: "Hello, I need help with my order"
+              required:
+                - customerId
+                - content
+      responses:
+        '201':
+          description: Chat created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+              example:
+                chatId: "chat_abc123"
+                customerId: "user123"
+                topic: "Customer Support"
+                startTime: "2024-01-15T10:30:00Z"
+                messages:
+                  - messageId: "msg_001"
+                    senderId: "user123"
+                    content: "Hello, I need help with my order"
+                    timestamp: "2024-01-15T10:30:00Z"
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+
+  /chat/{chatId}:
+    get:
+      summary: Get all messages from a chat
+      operationId: getChatMessages
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "chat_abc123"
+        - name: chat_api_key
+          in: header
+          required: true
+          schema:
+            type: string
+          example: "your-api-key-here"
+      responses:
+        '200':
+          description: Chat messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+              example:
+                chatId: "chat_abc123"
+                customerId: "user123"
+                topic: "Customer Support"
+                startTime: "2024-01-15T10:30:00Z"
+                messages:
+                  - messageId: "msg_001"
+                    senderId: "user123"
+                    content: "Hello, I need help with my order"
+                    timestamp: "2024-01-15T10:31:00Z"
+                  - messageId: "msg_002"
+                    senderId: "agent456"
+                    content: "Hi! I'd be happy to help. What's your order number?"
+                    timestamp: "2024-01-15T10:32:00Z"
+        '404':
+          description: Chat not found
+        '401':
+          description: Unauthorized
+
+    post:
+      summary: Send a message to a chat
+      operationId: sendMessage
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "chat_abc123"
+        - name: chat_api_key
+          in: header
+          required: true
+          schema:
+            type: string
+          example: "your-api-key-here"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                senderId:
+                  type: string
+                  example: "user123"
+                content:
+                  type: string
+                  example: "Thank you for your help!"
+              required:
+                - senderId
+                - content
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+              example:
+                messageId: "msg_003"
+                chatId: "chat_abc123"
+                senderId: "user123"
+                content: "Thank you for your help!"
+                timestamp: "2024-01-15T10:35:00Z"
+        '400':
+          description: Bad request
+        '404':
+          description: Chat not found
+        '401':
+          description: Unauthorized
+
+    delete:
+      summary: End a chat
+      operationId: endChat
+      parameters:
+        - name: chatId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "chat_abc123"
+        - name: chat_api_key
+          in: header
+          required: true
+          schema:
+            type: string
+          example: "your-api-key-here"
+      responses:
+        '200':
+          description: Chat ended successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chatId:
+                    type: string
+                  endedAt:
+                    type: string
+                    format: date-time
+              example:
+                chatId: "chat_abc123"
+                endedAt: "2024-01-15T10:40:00Z"
+        '404':
+          description: Chat not found
+        '401':
+          description: Unauthorized
+
+components:
+  schemas:
+    Chat:
+      type: object
+      properties:
+        chatId:
+          type: string
+        customerId:
+          type: string
+        topic:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    Message:
+      type: object
+      properties:
+        messageId:
+          type: string
+        chatId:
+          type: string
+        senderId:
+          type: string
+        content:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
